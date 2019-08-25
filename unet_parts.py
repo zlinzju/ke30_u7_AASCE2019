@@ -50,9 +50,9 @@ class down(nn.Module):
 
 
 class up(nn.Module):
-    def __init__(self, in_ch, out_ch, bilinear=True):
+    def __init__(self, in_ch, out_ch, bilinear=True, merge_mode="add"):
         super(up, self).__init__()
-
+        self.merge_mode = merge_mode
         #  would be a nice idea if the upsampling could be learned too,
         #  but my machine do not have enough memory to handle all those weights
         if bilinear:
@@ -75,8 +75,12 @@ class up(nn.Module):
         # for padding issues, see 
         # https://github.com/HaiyongJiang/U-Net-Pytorch-Unstructured-Buggy/commit/0e854509c2cea854e247a9c615f175f76fbb2e3a
         # https://github.com/xiaopeng-liao/Pytorch-UNet/commit/8ebac70e633bac59fc22bb5195e513d5832fb3bd
-
-        x = torch.cat([x2, x1], dim=1)
+        
+        if self.merge_mode == "add":
+            x = x2 + x1
+        else:
+            x = torch.cat((x2, x1), 1)
+        
         x = self.conv(x)
         return x
 
